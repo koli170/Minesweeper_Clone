@@ -26,18 +26,6 @@ struct Tile {
     Tile(int xmin, int xmax, int ymin, int ymax, int bombcnt = 0, bool revealed = false, olc::Pixel clr = olc::BLUE) : 
             x_min{xmin}, x_max{xmax}, y_min{ymin}, y_max{ymax}, bomb_count{bombcnt}, is_revealed{revealed}, color{clr} 
         {}
-
-    // Tile& operator =(const Tile& other)
-    //     {
-    //         x_min = other.x_min;
-    //         x_max = other.x_max;
-    //         y_min = other.y_min;
-    //         y_max = other.y_max;
-    //         bomb_count = other.bomb_count;
-    //         is_revealed = other.is_revealed;
-
-    //         return *this;
-    //     }
         
 
 };
@@ -81,20 +69,39 @@ public:
 		// called once per frame
         FillRect(border_size, border_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size), olc::GREY);
 
+        // DRAW TILES
         for (int x = 0; x < grid_x; x++){
             for (int y = 0; y < grid_y; y++){
                 Tile current_tile = *mine_field[x][y];
-
-                if ((border_size + current_tile.x_min <= GetMouseX() && GetMouseX() < border_size + current_tile.x_max 
-                    && border_size + current_tile.y_min <= GetMouseY() && GetMouseY() < border_size + current_tile.y_max)){
-                        FillRect(border_size+(current_tile.x_min), (border_size) + current_tile.y_min, tile_size, tile_size, olc::WHITE);
-
-                    }
-                else{
+                    if (!current_tile.is_revealed){
                     FillRect(border_size + current_tile.x_min, border_size + current_tile.y_min, tile_size, tile_size, current_tile.color);
+            
                 }
             }
         }
+
+        // DRAW GRID LINES
+        for (int x = 0; x <= grid_x; x++){
+            FillRect(border_size + tile_size*x, border_size, 2, grid_y*tile_size, olc::BLACK);
+        }
+        for (int y = 0; y <= grid_y; y++){
+            FillRect(border_size, border_size + tile_size*y, grid_x*tile_size, 2, olc::BLACK);
+        }
+
+        // PRESS TILES
+        if (GetMouse(0).bPressed){
+            for (int x = 0; x < grid_x; x++){
+                for (int y = 0; y < grid_y; y++){
+                    Tile current_tile = *mine_field[x][y];
+    
+                    if ((border_size + current_tile.x_min <= GetMouseX() && GetMouseX() < border_size + current_tile.x_max 
+                        && border_size + current_tile.y_min <= GetMouseY() && GetMouseY() < border_size + current_tile.y_max)){
+                        mine_field[x][y]->is_revealed = true;
+                        }
+                }
+            }
+        }
+
 
 
 		return true;
