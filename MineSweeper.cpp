@@ -69,11 +69,21 @@ public:
 		// called once per frame
         FillRect(border_size, border_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size), olc::GREY);
 
-        // DRAW TILES
+        // ITERATE TILES
         for (int x = 0; x < grid_x; x++){
             for (int y = 0; y < grid_y; y++){
                 Tile current_tile = *mine_field[x][y];
-                    if (!current_tile.is_revealed){
+
+                // PRESS TILE
+                if (GetMouse(0).bPressed){
+                    if ((border_size + current_tile.x_min <= GetMouseX() && GetMouseX() < border_size + current_tile.x_max 
+                            && border_size + current_tile.y_min <= GetMouseY() && GetMouseY() < border_size + current_tile.y_max)){
+                            mine_field[x][y]->is_revealed = true;
+                            }
+                    }
+
+                 // DRAW TILE
+                if (!current_tile.is_revealed){
                     FillRect(border_size + current_tile.x_min, border_size + current_tile.y_min, tile_size, tile_size, current_tile.color);
             
                 }
@@ -86,20 +96,6 @@ public:
         }
         for (int y = 0; y <= grid_y; y++){
             FillRect(border_size, border_size + tile_size*y, grid_x*tile_size, 2, olc::BLACK);
-        }
-
-        // PRESS TILES
-        if (GetMouse(0).bPressed){
-            for (int x = 0; x < grid_x; x++){
-                for (int y = 0; y < grid_y; y++){
-                    Tile current_tile = *mine_field[x][y];
-    
-                    if ((border_size + current_tile.x_min <= GetMouseX() && GetMouseX() < border_size + current_tile.x_max 
-                        && border_size + current_tile.y_min <= GetMouseY() && GetMouseY() < border_size + current_tile.y_max)){
-                        mine_field[x][y]->is_revealed = true;
-                        }
-                }
-            }
         }
 
 
