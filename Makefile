@@ -7,7 +7,7 @@ LDLIBS = -lpng
 INCLUDE_DIR = -Isrc -I/opt/homebrew/include
 LIB_DIR = -L/opt/homebrew/lib
 
-TARGET = MyExecutableName
+TARGET = MineSweeper
 SRC = MineSweeper.cpp
 
 

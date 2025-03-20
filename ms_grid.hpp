@@ -82,6 +82,18 @@ struct Grid {
         }
     }    
 
+    void revealAround(int tile_x, int tile_y){
+        if (mine_field[tile_x][tile_y]->is_revealed){
+            for (int x = tile_x-1; x <= tile_x+1; x++){
+                for (int y = tile_y-1; y <= tile_y+1; y++){
+                    if (x < grid_x && x >= 0 && y < grid_y && y >= 0 && !mine_field[x][y]->is_revealed){
+                        revealTile(x,y);
+                    }
+                }
+            }
+        }
+    }
+
     bool generateMines(int start_x, int start_y, int border_size){
         cout << "STARTING GENERATION" << endl;
         int tile_x;

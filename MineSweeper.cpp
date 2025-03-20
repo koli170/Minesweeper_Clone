@@ -11,6 +11,7 @@
 #include <ctime>
 
 #include "ms_grid.hpp"
+#include "ms_input_controller"
 
 using std::vector;
 using std::make_unique;
@@ -33,6 +34,8 @@ bool generated = false;
 class MineSweeper : public olc::PixelGameEngine 
 {
     int tile_size = (screen_width - 2*border_size)/grid_x;
+    float global_time = 0;
+    float start_time = 0;
     Grid grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
 
 
@@ -53,36 +56,26 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
+        global_time += fElapsedTime;
+
         Clear(olc::DARK_GREY);
 		// called once per frame
-        FillRect(border_size, border_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size), olc::GREY);
-
-        // ITERATE TILES
-        for (int x = 0; x < grid_x; x++){
-            for (int y = 0; y < grid_y; y++){
-                Tile current_tile = *grid.mine_field[x][y];
-
-                // PRESS TILE
-                if (GetMouse(0).bPressed){
-
-                    if (!generated){
-                        generated = grid.generateMines(GetMouseX(), GetMouseY(), border_size);
-                    }
-
-                    if ((border_size + current_tile.x_min <= GetMouseX() && GetMouseX() < border_size + current_tile.x_max 
-                            && border_size + current_tile.y_min <= GetMouseY() && GetMouseY() < border_size + current_tile.y_max)){
-                            grid.revealTile(x,y);
-                            }
-                    }
-
-                if (GetMouse(1).bPressed && generated){
-                    if ((border_size + current_tile.x_min <= GetMouseX() && GetMouseX() < border_size + current_tile.x_max 
-                            && border_size + current_tile.y_min <= GetMouseY() && GetMouseY() < border_size + current_tile.y_max)){
-                            grid.mine_field[x][y]->flag();
-                            }
-                } 
-
+        char key = '_'; // Default nothing pressed
+        bool double_click = false;
+        if (GetMouse(0).bPressed){
+            if (global_time - start_time < 0.2){
+                double_click = true;
             }
+            start_time = global_time;
+            key = '0';
+        }
+
+        else if (GetMouse(1).bPressed){
+            key = '1';
+        }
+
+        if (key != '_'){
+            player_click(grid, border_size, key, GetMouseX(), GetMouseY(), double_click);
         }
 
         FillRect(border_size, border_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size), olc::GREY);
