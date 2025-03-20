@@ -30,6 +30,7 @@ struct Tile {
     int y_max;
     int bomb_count = 0;
     bool safe = false;
+    bool is_flagged = false;
     bool is_bomb = false;
     bool is_revealed = false;
     olc::Pixel color;
@@ -37,6 +38,10 @@ struct Tile {
     Tile(int xmin, int xmax, int ymin, int ymax, int bombcnt = 0, bool revealed = false, olc::Pixel clr = olc::BLUE) : 
             x_min{xmin}, x_max{xmax}, y_min{ymin}, y_max{ymax}, bomb_count{bombcnt}, is_revealed{revealed}, color{clr} 
         {}
+
+    void flag(){
+        is_flagged = !is_flagged;
+    }
         
 };
 
@@ -44,13 +49,13 @@ vector<vector<unique_ptr<Tile>>> mine_field;
 
 
 void revealTile(int tile_x, int tile_y){
-    cout << "REVEALING TILE X: " << tile_x << " Y: " << tile_y << endl;
-    mine_field[tile_x][tile_y]->is_revealed = true;
-    if (mine_field[tile_x][tile_y]->bomb_count == 0){
+    if (!mine_field[tile_x][tile_y]->is_flagged){
+        mine_field[tile_x][tile_y]->is_revealed = true;
+    }
+    if (mine_field[tile_x][tile_y]->bomb_count == 0 && mine_field[tile_x][tile_y]->is_revealed){
         for (int x = tile_x-1; x <= tile_x+1; x++){
             for (int y = tile_y-1; y <= tile_y+1; y++){
                 if (x < grid_x && x >= 0 && y < grid_y && y >= 0 && !mine_field[x][y]->is_revealed){
-                    cout << "CHECKING X: " << tile_x << " Y: " << tile_y << endl;
                     revealTile(x,y);
                 }
             }
@@ -180,8 +185,18 @@ public:
                             }
                     }
 
+                if (GetMouse(1).bPressed && generated){
+                    if ((border_size + current_tile.x_min <= GetMouseX() && GetMouseX() < border_size + current_tile.x_max 
+                            && border_size + current_tile.y_min <= GetMouseY() && GetMouseY() < border_size + current_tile.y_max)){
+                            mine_field[x][y]->flag();
+                            }
+                }
+
                  // DRAW TILE
-                if (!current_tile.is_revealed){
+                if(current_tile.is_flagged){
+                    FillRect(border_size + current_tile.x_min, border_size + current_tile.y_min, tile_size, tile_size, olc::GREEN);
+                }
+                else if (!current_tile.is_revealed){
                     FillRect(border_size + current_tile.x_min, border_size + current_tile.y_min, tile_size, tile_size, current_tile.color);
             
                 }
@@ -191,11 +206,13 @@ public:
                 else if(current_tile.is_bomb){
                     FillRect(border_size + current_tile.x_min, border_size + current_tile.y_min, tile_size, tile_size, olc::RED);
                 }
+            
                 else{
                     DrawString(border_size + current_tile.x_min, border_size + current_tile.y_min, to_string(current_tile.bomb_count), olc::BLACK, 3);
                 }
             }
         }
+    
 
         // DRAW GRID LINES
         for (int x = 0; x <= grid_x; x++){
