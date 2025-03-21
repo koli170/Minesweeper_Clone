@@ -1,4 +1,4 @@
-# Compiler for olcPixelgameEngine on Mac (THANK YOU REDDIT!)
+# Makefile for olcPixelgameEngine on Mac (THANK YOU REDDIT!)
 CXX = clang++
 CXXFLAGS = -std=c++17 -mmacosx-version-min=10.15 -Wall
 LDFLAGS = -framework OpenGL -framework GLUT -framework Cocoa

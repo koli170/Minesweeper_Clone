@@ -37,7 +37,9 @@ struct Tile {
         {}
 
     void flag(){
-        is_flagged = !is_flagged;
+        if (!is_revealed){
+            is_flagged = !is_flagged;
+        }
     }
         
 };
@@ -48,24 +50,36 @@ struct Grid {
     int grid_x;
     int grid_y;
     int bomb_amount;
+    int flag_count = 0;
     bool generated = false;
 
     Grid(int tile_size, int grid_x, int grid_y, int bomb_amount) : 
             tile_size{tile_size}, grid_x{grid_x}, grid_y{grid_y}, bomb_amount{bomb_amount}
         {
+            mine_field.resize(grid_x);
+            for (int x = 0; x < grid_x; x++) {
+                mine_field[x].resize(grid_y);
+            }
 
-        mine_field.resize(grid_x);
-        for (int x = 0; x < grid_x; x++) {
-            mine_field[x].resize(grid_y);
-        }
+            for (int x = 0; x < grid_x; x++){
+                for (int y = 0; y < grid_y; y++){
 
-        for (int x = 0; x < grid_x; x++){
-            for (int y = 0; y < grid_y; y++){
-
-                mine_field[x][y] = make_unique<Tile>(x*tile_size, (x+1)*tile_size, y*tile_size, (y+1)*tile_size);
+                    mine_field[x][y] = make_unique<Tile>(x*tile_size, (x+1)*tile_size, y*tile_size, (y+1)*tile_size);
+                }
             }
         }
+
+    void flagTile(int x, int y){
+        if (!mine_field[x][y]->is_revealed){
+            mine_field[x][y]->flag();
+            if (mine_field[x][y]->is_flagged){
+                flag_count++;
+            }
+            else{
+                flag_count--;
+            }
         }
+    }
 
     void revealTile(int tile_x, int tile_y){
         if (!mine_field[tile_x][tile_y]->is_flagged){
