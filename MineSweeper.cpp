@@ -23,9 +23,9 @@ using std::endl;
 using std::pair;
 using std::pow;
 
-int grid_x = 9;
-int grid_y = 9;
-int bomb_amount = 10;
+int grid_x = 16;
+int grid_y = 16;
+int bomb_amount = 50;
 int border_size = 20;
 int banner_size = border_size + 48;
 int screen_width = 2*border_size + grid_x*32;
