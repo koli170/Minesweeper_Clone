@@ -1,5 +1,12 @@
 # Minesweeper_Clone
 
-#TODO: Split into multiple files
-#TODO: Make it not possible to flag revealed squares
-#TODO: Make double click sensitivity change-able
+
+TODO: Make double click sensitivity change-able
+TODO: MENU
+TODO: WIN / LOSS SCREEN
+TODO: STATS
+TODO: CHANGEABLE GRID SIZE AND BOMB COUNT
+TODO: TOO MANY BOMBS = INF LOOP
+TODO: UPGRADE HINT ALGORITHM (SUBSET TECH)
+TODO: ADD RESTART AND HINT UI BUTTON
+TODO: UPGRADE HINT SYMBOL
