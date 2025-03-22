@@ -187,7 +187,7 @@ public:
             int flag_counter = grid.bomb_amount - grid.flag_count;
             int counter_value = 0;
             bool negative = false;
-            FillRect(border_size, border_size, 78, 48, olc::BLACK);
+            FillRect(border_size, border_size, 78, 46, olc::BLACK);
             if (flag_counter > 999){
                 flag_counter = 999;
             }
@@ -212,7 +212,7 @@ public:
                 else if (counter_value == 0){
                     counter_value = 10;
                 }
-                DrawPartialSprite(border_size + 26*i, border_size, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 24, 2);
+                DrawPartialSprite(border_size + 26*i, border_size, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
                 flag_counter = flag_counter / 10;
             }
         // If defeat is different from start of this frame, 
@@ -226,7 +226,7 @@ public:
         }
         int temp_round_time = round_time;
         int counter_value = 0;
-        FillRect(ScreenWidth() - border_size - 78, border_size, 78, 48, olc::BLACK);
+        FillRect(ScreenWidth() - border_size - 78, border_size, 78, 46, olc::BLACK);
         if (round_time > 999){
             temp_round_time = 999;
         }
@@ -241,7 +241,7 @@ public:
             else if (counter_value == 0){
                 counter_value = 10;
             }
-            DrawPartialSprite(ScreenWidth() - border_size - 78 + 26*i, border_size, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 24, 2);
+            DrawPartialSprite(ScreenWidth() - border_size - 78 + 26*i, border_size, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
             temp_round_time = temp_round_time / 10;
         }
 
