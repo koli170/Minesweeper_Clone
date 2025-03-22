@@ -19,6 +19,8 @@ using std::unique_ptr;
 using std::to_string;
 using std::cout;
 using std::endl;
+using std::pair;
+using std::make_pair;
 
 struct Tile {
     int x_min;
@@ -170,8 +172,52 @@ struct Grid {
         }
     
         return ret_val;
-
     }
+
+    pair<int, int> hint(){
+        int neighbor_count = 0;
+        int un_flagged_bomb_count = 0;
+        pair<int,int> guess = make_pair(-1,-1);
+        for (int x = 0; x < grid_x; x++){
+            for (int y = 0; y < grid_y; y++){
+                Tile current_tile = *mine_field[x][y];
+
+                if (current_tile.is_revealed && current_tile.bomb_count > 0){
+                    neighbor_count = 0;
+                    un_flagged_bomb_count = current_tile.bomb_count;
+                    cout << "CHECKING TILE " << x << " " << y << endl;
+                    for (int neighbor_x = x-1; neighbor_x <= x+1; neighbor_x++){
+                        for (int neighbor_y = y-1; neighbor_y <= y+1; neighbor_y++){
+                            if (neighbor_x < grid_x && neighbor_x >= 0 && neighbor_y < grid_y && neighbor_y >= 0 
+                                && !mine_field[neighbor_x][neighbor_y]->is_revealed 
+                                && mine_field[neighbor_x][neighbor_y]->is_flagged){
+                                    un_flagged_bomb_count--;
+                                }
+                            if (neighbor_x < grid_x && neighbor_x >= 0 && neighbor_y < grid_y && neighbor_y >= 0 
+                                && !mine_field[neighbor_x][neighbor_y]->is_revealed 
+                                && !mine_field[neighbor_x][neighbor_y]->is_flagged){
+                                guess = make_pair(neighbor_x,neighbor_y);
+                                neighbor_count++;
+                            }
+                        }
+                    }
+                    if (neighbor_count == un_flagged_bomb_count && un_flagged_bomb_count > 0){
+                        cout << guess.first << " " << guess.second << endl;
+                        flagTile(guess.first, guess.second);
+                        return guess;
+                    }
+                    if (un_flagged_bomb_count == 0 && neighbor_count > 0){
+                        cout << "CLEAR" << endl;
+                        revealAround(x, y);
+                        return make_pair(x,y);
+                    }
+                }
+
+            }
+        }
+        return make_pair(-1,-1);
+    }
+
 };
 
 #endif

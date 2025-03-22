@@ -19,10 +19,11 @@ using std::unique_ptr;
 using std::to_string;
 using std::cout;
 using std::endl;
+using std::pair;
 
-int grid_x = 16;
+int grid_x = 32;
 int grid_y = 16;
-int bomb_amount = 40;
+int bomb_amount = 99;
 int border_size = 20;
 int screen_width = 2*border_size + grid_x*32;
 int screen_height = 2*border_size + grid_y*32;
@@ -52,6 +53,7 @@ class MineSweeper : public olc::PixelGameEngine
     int tile_size = 32;
     float global_time = 0;
     float start_time = 0;
+    pair <int,int> guess = make_pair(-1,-1);
     Grid grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
 
 
@@ -99,8 +101,14 @@ public:
 
         if (GetKey(olc::R).bPressed){
             grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
+            guess = make_pair(-1,-1);
             victory = true;
             defeat = false;
+        }
+
+        if (GetKey(olc::H).bPressed){
+            guess = grid.hint();
+            cout << "HINT USED" << endl;
         }
 
         FillRect(border_size, border_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size), olc::GREY);
@@ -151,6 +159,11 @@ public:
                 // DRAW NUMBER
                 else{
                     DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_number_x + (current_tile.bomb_count-1)*17, winmine_31_number_y, 16, 16, 2);
+                }
+
+                // DRAW HINT MARKER
+                if (x == guess.first && y == guess.second){
+                    FillRect(border_size + current_tile.x_min, border_size + current_tile.y_min, 10, 10, olc::YELLOW);
                 }
             }
         }
