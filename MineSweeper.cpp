@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <random>
 #include <ctime>
+#include <cmath>
 
 #include "ms_grid.hpp"
 #include "ms_input_controller.hpp"
@@ -20,13 +21,15 @@ using std::to_string;
 using std::cout;
 using std::endl;
 using std::pair;
+using std::pow;
 
-int grid_x = 32;
+int grid_x = 30;
 int grid_y = 16;
-int bomb_amount = 99;
+int bomb_amount = 100;
 int border_size = 20;
+int banner_size = border_size + 48;
 int screen_width = 2*border_size + grid_x*32;
-int screen_height = 2*border_size + grid_y*32;
+int screen_height = 2*border_size + banner_size + grid_y*32;
 bool generated = false;
 
 // Sprite sheet coords
@@ -42,6 +45,8 @@ int winmine_31_mine_flag_x = 133;
 int winmine_31_mine_flag_y = 195;
 int winmine_31_number_x = 14;
 int winmine_31_number_y = 212;
+int winmine_31_big_number_x = 14;
+int winmine_31_big_number_y = 146;
 
 
 
@@ -53,6 +58,7 @@ class MineSweeper : public olc::PixelGameEngine
     int tile_size = 32;
     float global_time = 0;
     float start_time = 0;
+    float round_time = 0;
     pair <int,int> guess = make_pair(-1,-1);
     Grid grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
 
@@ -96,12 +102,13 @@ public:
         }
 
         if (key != '_'){
-            player_click(grid, border_size, key, GetMouseX(), GetMouseY(), double_click);
+            player_click(grid, border_size, banner_size, key, GetMouseX(), GetMouseY(), double_click);
         }
 
         if (GetKey(olc::R).bPressed){
             grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
             guess = make_pair(-1,-1);
+            round_time = 0;
             victory = true;
             defeat = false;
         }
@@ -111,14 +118,14 @@ public:
             cout << "HINT USED" << endl;
         }
 
-        FillRect(border_size, border_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size), olc::GREY);
+        FillRect(border_size, border_size + banner_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size)-banner_size, olc::GREY);
 
         // DRAW GRID LINES
         for (int x = 0; x <= grid.grid_x; x++){
-            FillRect(border_size + grid.tile_size*x, border_size, 2, grid.grid_y*grid.tile_size, olc::DARK_GREY);
+            FillRect(border_size + grid.tile_size*x, border_size+banner_size, 2, grid.grid_y*grid.tile_size, olc::DARK_GREY);
         }
         for (int y = 0; y <= grid.grid_y; y++){
-            FillRect(border_size, border_size + grid.tile_size*y, grid.grid_x*grid.tile_size, 2, olc::DARK_GREY);
+            FillRect(border_size, border_size + banner_size + grid.tile_size*y, grid.grid_x*grid.tile_size, 2, olc::DARK_GREY);
         }
 
         // ITERATE TILES
@@ -133,24 +140,24 @@ public:
                 
                 // DRAW CLICKED BOMB
                 if(current_tile.is_bomb && current_tile.is_revealed){
-                    DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_revealed_x, winmine_31_mine_revealed_y, 16, 16, 2);
+                    DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_revealed_x, winmine_31_mine_revealed_y, 16, 16, 2);
                     defeat = true;
                 }
                 // DRAW FLAGGED BOMB ON DEFEAT
                 else if (defeat && current_tile.is_bomb && current_tile.is_flagged){
-                    DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_flag_x, winmine_31_mine_flag_y, 16, 16, 2);
+                    DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_flag_x, winmine_31_mine_flag_y, 16, 16, 2);
                 }
                 // DRAW UNFLAGGED BOMB ON DEFEAT
                 else if (defeat && current_tile.is_bomb && !current_tile.is_revealed){
-                    DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_x, winmine_31_mine_y, 16, 16, 2);
+                    DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_x, winmine_31_mine_y, 16, 16, 2);
                 }
                  // DRAW FLAGGED TILE
                 else if(current_tile.is_flagged){
-                    DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_flag_x, winmine_31_flag_y, 16, 16, 2);
+                    DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_flag_x, winmine_31_flag_y, 16, 16, 2);
                 }
                 // DRAW UNREVEALED TILE
                 else if (!current_tile.is_revealed){
-                    DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
+                    DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
                 }
                 // DRAW EMPTY TILE
                 else if(current_tile.bomb_count == 0){
@@ -158,20 +165,76 @@ public:
                 }
                 // DRAW NUMBER
                 else{
-                    DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_number_x + (current_tile.bomb_count-1)*17, winmine_31_number_y, 16, 16, 2);
+                    DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_number_x + (current_tile.bomb_count-1)*17, winmine_31_number_y, 16, 16, 2);
                 }
 
                 // DRAW HINT MARKER
                 if (x == guess.first && y == guess.second){
-                    FillRect(border_size + current_tile.x_min, border_size + current_tile.y_min, 10, 10, olc::YELLOW);
+                    FillRect(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, 10, 10, olc::YELLOW);
                 }
             }
         }
     
 
-
         // DRAW FLAG COUNT
-        DrawString(10, ScreenHeight()-30, to_string(grid.flag_count), olc::BLACK, 3);
+        int flag_counter = grid.bomb_amount - grid.flag_count;
+        int counter_value = 0;
+        bool negative = false;
+        FillRect(border_size, border_size, 78, 48, olc::BLACK);
+        if (flag_counter > 999){
+            flag_counter = 999;
+        }
+        else if (flag_counter < -99){
+            flag_counter = -99;
+        }
+        if (flag_counter < 0){
+            negative = true;
+            flag_counter = -flag_counter;
+        }
+        for (int i = 2; i >= 0; i--){
+            counter_value = flag_counter % 10;
+            if (negative && i == 0){
+                counter_value = 11;
+            }
+            else if (flag_counter == 0 && i == 2){
+                counter_value = 10;
+            }
+            else if (counter_value == 0 && flag_counter == 0){
+                counter_value = 12;
+            }
+            else if (counter_value == 0){
+                counter_value = 10;
+            }
+            DrawPartialSprite(border_size + 26*i, border_size, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 24, 2);
+            flag_counter = flag_counter / 10;
+        }
+
+
+        // DRAW TIMER
+        if (grid.generated){
+            round_time += fElapsedTime;
+        }
+        int temp_round_time = round_time;
+        counter_value = 0;
+        FillRect(ScreenWidth() - border_size - 78, border_size, 78, 48, olc::BLACK);
+        if (round_time > 999){
+            temp_round_time = 999;
+        }
+        for (int i = 2; i >= 0; i--){
+            counter_value = temp_round_time % 10;
+            if (temp_round_time == 0 && i == 2){
+                counter_value = 10;
+            }
+            else if (counter_value == 0 && temp_round_time == 0){
+                counter_value = 12;
+            }
+            else if (counter_value == 0){
+                counter_value = 10;
+            }
+            DrawPartialSprite(ScreenWidth() - border_size - 78 + 26*i, border_size, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 24, 2);
+            temp_round_time = temp_round_time / 10;
+        }
+
         
         if (victory){
             cout << "WIN" << endl;

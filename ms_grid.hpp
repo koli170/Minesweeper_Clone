@@ -110,7 +110,7 @@ struct Grid {
         }
     }
 
-    bool generateMines(int start_x, int start_y, int border_size){
+    bool generateMines(int start_x, int start_y, int border_size, int banner_size){
         cout << "STARTING GENERATION" << endl;
         int tile_x;
         int tile_y;
@@ -125,7 +125,7 @@ struct Grid {
                 cout << "\t X: " << x << " Y: " << y << endl;
                 Tile current_tile = *mine_field[x][y];
                 if ((border_size + current_tile.x_min <= start_x && start_x < border_size + current_tile.x_max 
-                                && border_size + current_tile.y_min <= start_y && start_y < border_size + current_tile.y_max)){
+                                && border_size + banner_size + current_tile.y_min <= start_y && start_y < border_size + banner_size + current_tile.y_max)){
                     tile_x = x;
                     tile_y = y;
                     ret_val = true;
@@ -201,11 +201,13 @@ struct Grid {
                             }
                         }
                     }
+                    // B1
                     if (neighbor_count == un_flagged_bomb_count && un_flagged_bomb_count > 0){
                         cout << guess.first << " " << guess.second << endl;
                         flagTile(guess.first, guess.second);
                         return guess;
                     }
+                    // B2
                     if (un_flagged_bomb_count == 0 && neighbor_count > 0){
                         cout << "CLEAR" << endl;
                         revealAround(x, y);
