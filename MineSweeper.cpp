@@ -11,7 +11,7 @@
 #include <ctime>
 
 #include "ms_grid.hpp"
-#include "ms_input_controller"
+#include "ms_input_controller.hpp"
 
 using std::vector;
 using std::make_unique;
@@ -20,12 +20,12 @@ using std::to_string;
 using std::cout;
 using std::endl;
 
-int screen_width = 500;
-int screen_height = 500;
-int grid_x = 10;
-int grid_y = 10;
-int bomb_amount = 15;
+int grid_x = 16;
+int grid_y = 16;
+int bomb_amount = 40;
 int border_size = 20;
+int screen_width = 2*border_size + grid_x*32;
+int screen_height = 2*border_size + grid_y*32;
 bool generated = false;
 
 // Sprite sheet coords
@@ -39,12 +39,16 @@ int winmine_31_mine_revealed_x = 116;
 int winmine_31_mine_revealed_y = 195;
 int winmine_31_mine_flag_x = 133;
 int winmine_31_mine_flag_y = 195;
+int winmine_31_number_x = 14;
+int winmine_31_number_y = 212;
 
 
 
 
 class MineSweeper : public olc::PixelGameEngine 
 {
+    bool victory = true;
+    bool defeat = false;
     int tile_size = 32;
     float global_time = 0;
     float start_time = 0;
@@ -70,8 +74,6 @@ public:
 	{
         olc::Sprite sprite_sheet("ms_sprite_sheet.png");
 
-        bool victory = true;
-        bool defeat = false;
         global_time += fElapsedTime;
 
         Clear(olc::DARK_GREY);
@@ -97,6 +99,8 @@ public:
 
         if (GetKey(olc::R).bPressed){
             grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
+            victory = true;
+            defeat = false;
         }
 
         FillRect(border_size, border_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size), olc::GREY);
@@ -110,6 +114,7 @@ public:
         }
 
         // ITERATE TILES
+        victory = true;
         for (int x = 0; x < grid.grid_x; x++){
             for (int y = 0; y < grid.grid_y; y++){
                 Tile current_tile = *grid.mine_field[x][y];
@@ -138,7 +143,6 @@ public:
                 // DRAW UNREVEALED TILE
                 else if (!current_tile.is_revealed){
                     DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
-            
                 }
                 // DRAW EMPTY TILE
                 else if(current_tile.bomb_count == 0){
@@ -146,7 +150,7 @@ public:
                 }
                 // DRAW NUMBER
                 else{
-                    DrawString(border_size + current_tile.x_min, border_size + current_tile.y_min, to_string(current_tile.bomb_count), olc::BLACK, 3);
+                    DrawPartialSprite(border_size + current_tile.x_min, border_size + current_tile.y_min, &sprite_sheet, winmine_31_number_x + (current_tile.bomb_count-1)*17, winmine_31_number_y, 16, 16, 2);
                 }
             }
         }
