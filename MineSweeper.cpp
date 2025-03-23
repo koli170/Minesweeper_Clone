@@ -23,9 +23,9 @@ using std::endl;
 using std::pair;
 using std::pow;
 
-int grid_x = 16;
-int grid_y = 16;
-int bomb_amount = 50;
+int grid_x = 9;
+int grid_y = 9;
+int bomb_amount = 10;
 int border_size = 20;
 int banner_size = border_size + 48;
 int screen_width = 2*border_size + grid_x*32;
@@ -53,9 +53,10 @@ int winmine_31_big_number_y = 146;
 
 class MineSweeper : public olc::PixelGameEngine 
 {
-    bool victory = true;
+    bool victory = false;
     bool defeat = false;
     bool change = true;
+    bool win_screen = true;
     int tile_size = 32;
     float global_time = 0;
     float start_time = 0;
@@ -100,7 +101,7 @@ public:
             key = '1';
         }
 
-        if (key != '_'){
+        if (key != '_' && !victory && !defeat){
             player_click(grid, border_size, banner_size, key, GetMouseX(), GetMouseY(), double_click);
             change = true;
         }
@@ -109,9 +110,10 @@ public:
             grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
             guess = make_pair(-1,-1);
             round_time = 0;
-            victory = true;
+            victory = false;
             defeat = false;
             change = true;
+            win_screen = true;
         }
 
         if (GetKey(olc::H).bPressed){
@@ -124,14 +126,16 @@ public:
         if (change){
             change = defeat;
             Clear(olc::DARK_GREY);
-
+            
+            // DRAW GRID LINES & BORDER
+            FillRect(border_size - 5, border_size+banner_size-5, grid.grid_x*grid.tile_size + 10, grid.grid_y*grid.tile_size + 10, olc::VERY_DARK_GREY);
             FillRect(border_size, border_size + banner_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size)-banner_size, olc::GREY);
 
-            // DRAW GRID LINES
-            for (int x = 0; x <= grid.grid_x; x++){
+
+            for (int x = 0; x < grid.grid_x; x++){
                 FillRect(border_size + grid.tile_size*x, border_size+banner_size, 2, grid.grid_y*grid.tile_size, olc::DARK_GREY);
             }
-            for (int y = 0; y <= grid.grid_y; y++){
+            for (int y = 0; y < grid.grid_y; y++){
                 FillRect(border_size, border_size + banner_size + grid.tile_size*y, grid.grid_x*grid.tile_size, 2, olc::DARK_GREY);
             }
 
@@ -246,11 +250,18 @@ public:
         }
 
         
-        if (victory){
-            cout << "WIN" << endl;
-        }
-        if (defeat){
-            cout << "BOOM" << endl;
+        if (victory && win_screen){
+            FillRect(ScreenWidth()/5 - 5, ScreenHeight()/5 - 5, 3*ScreenWidth()/5 + 10, 3*ScreenHeight()/5 + 10, olc::VERY_DARK_GREY);
+            FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 3*ScreenHeight()/5, olc::GREY);
+            FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, ScreenHeight()/10, olc::DARK_BLUE);
+            DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 10, "YOU WIN", olc::WHITE, 3);
+            DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 64, "TIME: " + to_string(static_cast<int>(round_time)) + "s", olc::VERY_DARK_GREY, 2);
+            DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 1.5*64, "MINES: " + to_string(bomb_amount), olc::VERY_DARK_GREY, 2);
+            if (GetMouse(0).bPressed){
+                cout << "close" << endl;
+                win_screen = false;
+                change = true;
+            }
         }
 
 
