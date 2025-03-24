@@ -108,7 +108,6 @@ public:
 
         if (GetKey(olc::R).bPressed){
             grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
-            guess = make_pair(-1,-1);
             round_time = 0;
             victory = false;
             defeat = false;
@@ -116,7 +115,8 @@ public:
             win_screen = true;
         }
 
-        if (GetKey(olc::H).bPressed){
+        guess = make_pair(-1,-1);
+        if (GetKey(olc::H).bPressed && !victory && !defeat){
             guess = grid.hint();
             cout << "HINT USED" << endl;
             change = true;
