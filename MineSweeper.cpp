@@ -253,11 +253,17 @@ public:
         if (victory && win_screen){
             FillRect(ScreenWidth()/5 - 5, ScreenHeight()/5 - 5, 3*ScreenWidth()/5 + 10, 3*ScreenHeight()/5 + 10, olc::VERY_DARK_GREY);
             FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 3*ScreenHeight()/5, olc::GREY);
-            FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, ScreenHeight()/10, olc::DARK_BLUE);
-            DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 10, "YOU WIN", olc::WHITE, 3);
+            FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 42, olc::DARK_BLUE);
+            DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 15, "YOU WIN", olc::WHITE, 2);
             DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 64, "TIME: " + to_string(static_cast<int>(round_time)) + "s", olc::VERY_DARK_GREY, 2);
             DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 1.5*64, "MINES: " + to_string(bomb_amount), olc::VERY_DARK_GREY, 2);
-            if (GetMouse(0).bPressed){
+            DrawPartialSprite(4*ScreenWidth()/5 - 32 - 5, ScreenHeight()/5 + 5, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
+            DrawString(4*ScreenWidth()/5 - 32 - 5 + 6, ScreenHeight()/5 + 5 + 6, "X", olc::VERY_DARK_GREY, 3);        
+
+            if (GetMouse(0).bPressed
+                && 4*ScreenWidth()/5 - 32 - 5 <= GetMouseX() && GetMouseX() < 4*ScreenWidth()/5 - 32 - 5 + 32 
+                && ScreenHeight()/5 + 5 <= GetMouseY() && GetMouseY() < ScreenHeight()/5 + 5 + 32){
+
                 cout << "close" << endl;
                 win_screen = false;
                 change = true;

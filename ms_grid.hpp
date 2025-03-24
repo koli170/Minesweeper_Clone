@@ -116,13 +116,11 @@ struct Grid {
         int tile_y;
         bool ret_val = false;
         // FIND START TILE
-        cout << "FINDING TILE" << endl;
         for (int x = 0; x < grid_x; x++){
             if (ret_val){
                 break;
             }
             for (int y = 0; y < grid_y; y++){
-                cout << "\t X: " << x << " Y: " << y << endl;
                 Tile current_tile = *mine_field[x][y];
                 if ((border_size + current_tile.x_min <= start_x && start_x < border_size + current_tile.x_max 
                                 && border_size + banner_size + current_tile.y_min <= start_y && start_y < border_size + banner_size + current_tile.y_max)){
@@ -144,9 +142,7 @@ struct Grid {
         cout << "MAKING SAFE ZONE" << endl;
         for (int x = tile_x-1; x <= tile_x+1; x++){
             for (int y = tile_y-1; y <= tile_y+1; y++){
-                cout << "\t X: " << x << " Y: " << y << endl;
                 if (x < grid_x && x >= 0 && y < grid_y && y >= 0){
-                    cout << "\t\t SET SAFE" << endl;
                     mine_field[x][y]->safe = true;
                 }
             }
@@ -185,7 +181,6 @@ struct Grid {
                 if (current_tile.is_revealed && current_tile.bomb_count > 0){
                     neighbor_count = 0;
                     un_flagged_bomb_count = current_tile.bomb_count;
-                    cout << "CHECKING TILE " << x << " " << y << endl;
                     for (int neighbor_x = x-1; neighbor_x <= x+1; neighbor_x++){
                         for (int neighbor_y = y-1; neighbor_y <= y+1; neighbor_y++){
                             if (neighbor_x < grid_x && neighbor_x >= 0 && neighbor_y < grid_y && neighbor_y >= 0 
