@@ -23,9 +23,9 @@ using std::endl;
 using std::pair;
 using std::pow;
 
-int grid_x = 9;
-int grid_y = 9;
-int bomb_amount = 10;
+int grid_x = 30;
+int grid_y = 16;
+int bomb_amount = 100;
 int border_size = 20;
 int banner_size = border_size + 48;
 int screen_width = 2*border_size + grid_x*32;
@@ -47,8 +47,6 @@ int winmine_31_number_x = 14;
 int winmine_31_number_y = 212;
 int winmine_31_big_number_x = 14;
 int winmine_31_big_number_y = 146;
-
-
 
 
 class MineSweeper : public olc::PixelGameEngine 
@@ -74,7 +72,9 @@ public:
 public:
 	bool OnUserCreate() override
 	{
+        
         std::srand(std::time({}));
+        //glutReshapeFunc(on_resize);
 
 		// Called once at the start, so create things here
 		return true;
@@ -113,6 +113,20 @@ public:
             defeat = false;
             change = true;
             win_screen = true;
+        }
+
+        if (GetKey(olc::P).bPressed) {
+            grid_x = 9;
+            grid_y = 9;
+            bomb_amount = 10;
+            grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
+            round_time = 0;
+            victory = false;
+            defeat = false;
+            change = true;
+            win_screen = true;
+            change = true;
+            
         }
 
         guess = make_pair(-1,-1);
@@ -223,6 +237,7 @@ public:
         // then draw it again in order to draw all exposed bombs
         change = (change != defeat);    
         }
+        
 
         // DRAW TIMER
         if (grid.generated && !victory && !defeat){
@@ -264,7 +279,6 @@ public:
                 && 4*ScreenWidth()/5 - 32 - 5 <= GetMouseX() && GetMouseX() < 4*ScreenWidth()/5 - 32 - 5 + 32 
                 && ScreenHeight()/5 + 5 <= GetMouseY() && GetMouseY() < ScreenHeight()/5 + 5 + 32){
 
-                cout << "close" << endl;
                 win_screen = false;
                 change = true;
             }
@@ -277,8 +291,8 @@ public:
 
         // Optional!
         bool OnUserDestroy() override
-	{
-		// Called when window is closed
+	{   
+        // Called when window is closed
 		return true;
 	}
 };
@@ -286,8 +300,9 @@ public:
 
 int main(int argc, char const *argv[]) {
 	MineSweeper game;
-	if (game.Construct(screen_width, screen_height, 1, 1))
+	if (game.Construct(screen_width, screen_height, 1, 1)){
 		game.Start();
+    }
 
 	return 0;
 }

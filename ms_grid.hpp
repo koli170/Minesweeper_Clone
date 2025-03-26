@@ -111,7 +111,6 @@ struct Grid {
     }
 
     bool generateMines(int start_x, int start_y, int border_size, int banner_size){
-        cout << "STARTING GENERATION" << endl;
         int tile_x;
         int tile_y;
         bool ret_val = false;
@@ -127,14 +126,12 @@ struct Grid {
                     tile_x = x;
                     tile_y = y;
                     ret_val = true;
-                    cout << "TILE FOUND" << endl;
                     break;
                 }
             }
         }
     
         if (!ret_val){
-            cout << "NO TILE FOUND" << endl;
             return ret_val;
         }
     
