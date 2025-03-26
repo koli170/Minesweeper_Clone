@@ -69,7 +69,39 @@ public:
 		sAppName = "Mine Sweeper"; // You can name your application here
 	}
 
-public:
+private:
+
+    void reset(){
+        grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
+        round_time = 0;
+        victory = false;
+        defeat = false;
+        change = true;
+        win_screen = true;
+    }
+
+    void set_difficulty_custom(int new_x, int new_y, int bombs){
+        grid_x = new_x;
+        grid_y = new_y;
+        bomb_amount = bombs;
+        border_size = (ScreenWidth() - tile_size*grid_x)/2;
+    }
+
+    void set_standard_difficulty(int difficulty){
+        switch (difficulty)
+        {
+        case 1:
+        set_difficulty_custom(9, 9, 10);
+            break;
+        case 2:
+        set_difficulty_custom(16, 16, 40);
+            break;
+        case 3:
+        set_difficulty_custom(30, 16, 100);
+            break;
+        }
+    }
+
 	bool OnUserCreate() override
 	{
         
@@ -107,27 +139,20 @@ public:
         }
 
         if (GetKey(olc::R).bPressed){
-            grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
-            round_time = 0;
-            victory = false;
-            defeat = false;
-            change = true;
-            win_screen = true;
+            reset();
         }
 
-        if (GetKey(olc::P).bPressed) {
-            grid_x = 9;
-            grid_y = 9;
-            bomb_amount = 10;
-            border_size = (ScreenWidth() - tile_size*grid_x)/2;
-            grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
-            round_time = 0;
-            victory = false;
-            defeat = false;
-            change = true;
-            win_screen = true;
-            change = true;
-            
+        if (GetKey(olc::K1).bPressed) {
+            set_standard_difficulty(1);
+            reset();
+        }
+        if (GetKey(olc::K2).bPressed) {
+            set_standard_difficulty(2);
+            reset();
+        }
+        if (GetKey(olc::K3).bPressed) {
+            set_standard_difficulty(3);
+            reset();
         }
 
         guess = make_pair(-1,-1);
