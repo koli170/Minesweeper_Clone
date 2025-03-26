@@ -122,7 +122,7 @@ struct Grid {
             for (int y = 0; y < grid_y; y++){
                 Tile current_tile = *mine_field[x][y];
                 if ((border_size + current_tile.x_min <= start_x && start_x < border_size + current_tile.x_max 
-                                && border_size + banner_size + current_tile.y_min <= start_y && start_y < border_size + banner_size + current_tile.y_max)){
+                                &&  banner_size + current_tile.y_min <= start_y && start_y < banner_size + current_tile.y_max)){
                     tile_x = x;
                     tile_y = y;
                     ret_val = true;

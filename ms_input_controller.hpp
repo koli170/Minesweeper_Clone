@@ -22,7 +22,7 @@ void player_click(Grid &grid, int border_size, int banner_size, char key, int mo
                 }
 
                 if ((border_size + current_tile.x_min <= mouse_x && mouse_x < border_size + current_tile.x_max 
-                    && border_size + banner_size + current_tile.y_min <= mouse_y && mouse_y < border_size + banner_size + current_tile.y_max)){
+                    && banner_size + current_tile.y_min <= mouse_y && mouse_y <  banner_size + current_tile.y_max)){
 
                         grid.revealTile(x,y);
 
@@ -34,7 +34,7 @@ void player_click(Grid &grid, int border_size, int banner_size, char key, int mo
 
             if (key == '1' && grid.generated){
                 if ((border_size + current_tile.x_min <= mouse_x && mouse_x < border_size + current_tile.x_max 
-                        && border_size + banner_size + current_tile.y_min <= mouse_y && mouse_y < border_size + banner_size + current_tile.y_max)){
+                        && banner_size + current_tile.y_min <= mouse_y && mouse_y <  banner_size + current_tile.y_max)){
                         grid.flagTile(x,y);
                 }
             } 

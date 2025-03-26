@@ -27,7 +27,7 @@ int grid_x = 30;
 int grid_y = 16;
 int bomb_amount = 100;
 int border_size = 20;
-int banner_size = border_size + 48;
+int banner_size = 2*border_size + 48;
 int screen_width = 2*border_size + grid_x*32;
 int screen_height = 2*border_size + banner_size + grid_y*32;
 bool generated = false;
@@ -119,6 +119,7 @@ public:
             grid_x = 9;
             grid_y = 9;
             bomb_amount = 10;
+            border_size = (ScreenWidth() - tile_size*grid_x)/2;
             grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
             round_time = 0;
             victory = false;
@@ -142,15 +143,15 @@ public:
             Clear(olc::DARK_GREY);
             
             // DRAW GRID LINES & BORDER
-            FillRect(border_size - 5, border_size+banner_size-5, grid.grid_x*grid.tile_size + 10, grid.grid_y*grid.tile_size + 10, olc::VERY_DARK_GREY);
-            FillRect(border_size, border_size + banner_size, ScreenWidth()-(2*border_size), ScreenHeight()-(2*border_size)-banner_size, olc::GREY);
+            FillRect(border_size - 5, banner_size-5, grid.grid_x*grid.tile_size + 10, grid.grid_y*grid.tile_size + 10, olc::VERY_DARK_GREY);
+            FillRect(border_size, banner_size, ScreenWidth()-(2*border_size), grid_y*tile_size, olc::GREY);
 
 
             for (int x = 0; x < grid.grid_x; x++){
-                FillRect(border_size + grid.tile_size*x, border_size+banner_size, 2, grid.grid_y*grid.tile_size, olc::DARK_GREY);
+                FillRect(border_size + grid.tile_size*x, banner_size, 2, grid.grid_y*grid.tile_size, olc::DARK_GREY);
             }
             for (int y = 0; y < grid.grid_y; y++){
-                FillRect(border_size, border_size + banner_size + grid.tile_size*y, grid.grid_x*grid.tile_size, 2, olc::DARK_GREY);
+                FillRect(border_size, banner_size + grid.tile_size*y, grid.grid_x*grid.tile_size, 2, olc::DARK_GREY);
             }
 
             // ITERATE TILES
@@ -165,24 +166,24 @@ public:
                     
                     // DRAW CLICKED BOMB
                     if(current_tile.is_bomb && current_tile.is_revealed){
-                        DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_revealed_x, winmine_31_mine_revealed_y, 16, 16, 2);
+                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_revealed_x, winmine_31_mine_revealed_y, 16, 16, 2);
                         defeat = true;
                     }
                     // DRAW FLAGGED BOMB ON DEFEAT
                     else if (defeat && current_tile.is_bomb && current_tile.is_flagged){
-                        DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_flag_x, winmine_31_mine_flag_y, 16, 16, 2);
+                        DrawPartialSprite(border_size + current_tile.x_min,  banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_flag_x, winmine_31_mine_flag_y, 16, 16, 2);
                     }
                     // DRAW UNFLAGGED BOMB ON DEFEAT
                     else if (defeat && current_tile.is_bomb && !current_tile.is_revealed){
-                        DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_x, winmine_31_mine_y, 16, 16, 2);
+                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_x, winmine_31_mine_y, 16, 16, 2);
                     }
                     // DRAW FLAGGED TILE
                     else if(current_tile.is_flagged){
-                        DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_flag_x, winmine_31_flag_y, 16, 16, 2);
+                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_flag_x, winmine_31_flag_y, 16, 16, 2);
                     }
                     // DRAW UNREVEALED TILE
                     else if (!current_tile.is_revealed){
-                        DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
+                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
                     }
                     // DRAW EMPTY TILE
                     else if(current_tile.bomb_count == 0){
@@ -190,12 +191,12 @@ public:
                     }
                     // DRAW NUMBER
                     else{
-                        DrawPartialSprite(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, &sprite_sheet, winmine_31_number_x + (current_tile.bomb_count-1)*17, winmine_31_number_y, 16, 16, 2);
+                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_number_x + (current_tile.bomb_count-1)*17, winmine_31_number_y, 16, 16, 2);
                     }
 
                     // DRAW HINT MARKER
                     if (x == guess.first && y == guess.second){
-                        FillRect(border_size + current_tile.x_min, border_size + banner_size + current_tile.y_min, 10, 10, olc::YELLOW);
+                        FillRect(border_size + current_tile.x_min, banner_size + current_tile.y_min, 10, 10, olc::YELLOW);
                     }
                 }
             }
@@ -205,7 +206,7 @@ public:
             int flag_counter = grid.bomb_amount - grid.flag_count;
             int counter_value = 0;
             bool negative = false;
-            FillRect(border_size, border_size, 78, 46, olc::BLACK);
+            FillRect(border_size, 20, 78, 46, olc::BLACK);
             if (flag_counter > 999){
                 flag_counter = 999;
             }
@@ -230,7 +231,7 @@ public:
                 else if (counter_value == 0){
                     counter_value = 10;
                 }
-                DrawPartialSprite(border_size + 26*i, border_size, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
+                DrawPartialSprite(border_size + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
                 flag_counter = flag_counter / 10;
             }
         // If defeat is different from start of this frame, 
@@ -245,7 +246,7 @@ public:
         }
         int temp_round_time = round_time;
         int counter_value = 0;
-        FillRect(ScreenWidth() - border_size - 78, border_size, 78, 46, olc::BLACK);
+        FillRect(ScreenWidth() - border_size - 78, 20, 78, 46, olc::BLACK);
         if (round_time > 999){
             temp_round_time = 999;
         }
@@ -260,7 +261,7 @@ public:
             else if (counter_value == 0){
                 counter_value = 10;
             }
-            DrawPartialSprite(ScreenWidth() - border_size - 78 + 26*i, border_size, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
+            DrawPartialSprite(ScreenWidth() - border_size - 78 + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
             temp_round_time = temp_round_time / 10;
         }
 
