@@ -47,6 +47,14 @@ int winmine_31_number_x = 14;
 int winmine_31_number_y = 212;
 int winmine_31_big_number_x = 14;
 int winmine_31_big_number_y = 146;
+int winmine_31_smiley_x = 14;
+int winmine_31_smiley_y = 170;
+int winmine_31_smiley_pressed_x = 39;
+int winmine_31_smiley_pressed_y = 170;
+int winmine_31_smiley_cool_x = 89;
+int winmine_31_smiley_cool_y = 170;
+int winmine_31_smiley_dead_x = 114;
+int winmine_31_smiley_dead_y = 170;
 
 
 class MineSweeper : public olc::PixelGameEngine 
@@ -55,12 +63,14 @@ class MineSweeper : public olc::PixelGameEngine
     bool defeat = false;
     bool change = true;
     bool win_screen = true;
+    bool restart_pressed = false;
     int tile_size = 32;
     float global_time = 0;
     float start_time = 0;
     float round_time = 0;
     pair <int,int> guess = make_pair(-1,-1);
     Grid grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
+    olc::Sprite sprite_sheet = olc::Sprite("ms_sprite_sheet.png");
 
 
 public:
@@ -70,6 +80,10 @@ public:
 	}
 
 private:
+
+    bool click_button(int x_min, int y_min, int x_max, int y_max){
+        return click_button_controller(GetMouseX(), GetMouseY(), x_min, y_min, x_max, y_max);
+    }
 
     void reset(){
         grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
@@ -102,6 +116,39 @@ private:
         }
     }
 
+    void draw_win_screen(){
+        FillRect(ScreenWidth()/5 - 5, ScreenHeight()/5 - 5, 3*ScreenWidth()/5 + 10, 3*ScreenHeight()/5 + 10, olc::VERY_DARK_GREY);
+        FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 3*ScreenHeight()/5, olc::GREY);
+        FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 42, olc::DARK_BLUE);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 15, "YOU WIN", olc::WHITE, 2);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 64, "TIME: " + to_string(static_cast<int>(round_time)) + "s", olc::VERY_DARK_GREY, 2);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 1.5*64, "MINES: " + to_string(bomb_amount), olc::VERY_DARK_GREY, 2);
+        DrawPartialSprite(4*ScreenWidth()/5 - 32 - 5, ScreenHeight()/5 + 5, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
+        DrawString(4*ScreenWidth()/5 - 32 - 5 + 6, ScreenHeight()/5 + 5 + 6, "X", olc::VERY_DARK_GREY, 3);        
+
+    }
+
+    void draw_restart_button(bool pressed, bool defeat, bool victory){
+        int x_min = ScreenWidth()/2 - 24;
+        int y_min = 20;
+        int x_max = x_min + 48;
+        int y_max = y_min + 48;
+        FillRect(x_min-5, y_min-5, 58 , 58, olc::VERY_DARK_GREY);
+        if (pressed){
+            DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_smiley_pressed_x, winmine_31_smiley_pressed_y, 24, 24, 2);
+        }
+        else if (defeat){
+            DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_smiley_dead_x, winmine_31_smiley_dead_y, 24, 24, 2);
+        }
+        else if (victory){
+            DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_smiley_cool_x, winmine_31_smiley_cool_y, 24, 24, 2);
+        }
+        else {
+            DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_smiley_x, winmine_31_smiley_y, 24, 24, 2);
+        }
+        
+    }
+
 	bool OnUserCreate() override
 	{
         
@@ -114,7 +161,6 @@ private:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-        olc::Sprite sprite_sheet("ms_sprite_sheet.png");
 
         global_time += fElapsedTime;
 
@@ -134,7 +180,7 @@ private:
         }
 
         if (key != '_' && !victory && !defeat){
-            player_click(grid, border_size, banner_size, key, GetMouseX(), GetMouseY(), double_click);
+            player_click_tile(grid, border_size, banner_size, key, GetMouseX(), GetMouseY(), double_click);
             change = true;
         }
 
@@ -158,6 +204,7 @@ private:
         guess = make_pair(-1,-1);
         if (GetKey(olc::H).bPressed && !victory && !defeat){
             guess = grid.hint();
+            round_time += 20;
             cout << "HINT USED" << endl;
             change = true;
         }
@@ -259,10 +306,21 @@ private:
                 DrawPartialSprite(border_size + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
                 flag_counter = flag_counter / 10;
             }
+
         // If defeat is different from start of this frame, 
         // then draw it again in order to draw all exposed bombs
         change = (change != defeat);    
         }
+
+        // Draw restart button
+        if (GetMouse(0).bPressed && click_button(ScreenWidth()/2-24, 20, ScreenWidth()/2+24, 68)){
+            restart_pressed = true;
+        }
+        if (restart_pressed && GetMouse(0).bReleased){
+            restart_pressed = false;
+            reset();
+        }
+        draw_restart_button(restart_pressed, defeat, victory);
         
 
         // DRAW TIMER
@@ -292,18 +350,9 @@ private:
 
         
         if (victory && win_screen){
-            FillRect(ScreenWidth()/5 - 5, ScreenHeight()/5 - 5, 3*ScreenWidth()/5 + 10, 3*ScreenHeight()/5 + 10, olc::VERY_DARK_GREY);
-            FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 3*ScreenHeight()/5, olc::GREY);
-            FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 42, olc::DARK_BLUE);
-            DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 15, "YOU WIN", olc::WHITE, 2);
-            DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 64, "TIME: " + to_string(static_cast<int>(round_time)) + "s", olc::VERY_DARK_GREY, 2);
-            DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 1.5*64, "MINES: " + to_string(bomb_amount), olc::VERY_DARK_GREY, 2);
-            DrawPartialSprite(4*ScreenWidth()/5 - 32 - 5, ScreenHeight()/5 + 5, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
-            DrawString(4*ScreenWidth()/5 - 32 - 5 + 6, ScreenHeight()/5 + 5 + 6, "X", olc::VERY_DARK_GREY, 3);        
-
+            draw_win_screen();
             if (GetMouse(0).bPressed
-                && 4*ScreenWidth()/5 - 32 - 5 <= GetMouseX() && GetMouseX() < 4*ScreenWidth()/5 - 32 - 5 + 32 
-                && ScreenHeight()/5 + 5 <= GetMouseY() && GetMouseY() < ScreenHeight()/5 + 5 + 32){
+                && click_button( 4*ScreenWidth()/5 - 32 - 5, ScreenHeight()/5 + 5, 4*ScreenWidth()/5 - 32 - 5 + 32, ScreenHeight()/5 + 5 + 32)){
 
                 win_screen = false;
                 change = true;
