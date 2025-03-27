@@ -1,9 +1,8 @@
-#ifndef PGE
-#define PGE
+
 #define OLC_PGE_APPLICATION
 #define OLC_IMAGE_STB
 #include "olcPixelGameEngine.h"
-#endif
+
 
 #include <stdio.h>
 #include <cstdlib>
@@ -83,7 +82,7 @@ class MineSweeper : public olc::PixelGameEngine
     float global_time = 0;
     float start_time = 0;
     float round_time = 0;
-    pair <int,int> guess = make_pair(-1,-1);
+    pair <int,int> guess = std::make_pair(-1,-1);
     Grid grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
     olc::Sprite sprite_sheet = olc::Sprite("ms_sprite_sheet.png");
 
@@ -371,7 +370,7 @@ private:
             reset();
         }
 
-        guess = make_pair(-1,-1);
+        guess = std::make_pair(-1,-1);
         if (GetKey(olc::H).bPressed && !victory && !defeat){
             guess = grid.hint();
             round_time += 20;

@@ -11,9 +11,19 @@ TARGET = MineSweeper
 SRC = MineSweeper.cpp
 
 
-all:
-	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) $(LIB_DIR) $(LDFLAGS) $(LDLIBS) $(SRC) -o $(TARGET)
+all: $(TARGET)
 
+$(TARGET): ms_grid.o ms_input_controller.o MineSweeper.o
+	$(CXX) $(CXXFLAGS) $(LIB_DIR) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+
+ms_grid.o: ms_grid.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) -c $< -o $@
+
+ms_input_controller.o: ms_input_controller.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) -c $< -o $@
+
+MineSweeper.o: MineSweeper.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIR) -c $< -o $@
 
 clean:
-	$(RM) $(TARGET)
+	$(RM) $(TARGET) ms_grid.o main.o ms_input_controller.o

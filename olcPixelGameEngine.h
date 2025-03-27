@@ -492,7 +492,6 @@ namespace olc
 {
     class PixelGameEngine;
     class Sprite;
-    int curr_window_id = -1;
 
     // Pixel Game Engine Advanced Configuration
     constexpr uint8_t  nMouseButtons = 5;
@@ -3166,13 +3165,12 @@ namespace olc
             //glutInit has to be called with main() arguments, make fake ones
             int argc = 0;
             char* argv[1] = { (char*)"" };
-            int test = 10924802;
             glutInit(&argc, argv);
             glutInitWindowPosition(0, 0);
             glutInitWindowSize(512, 512);
             glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
             // Creates the window and the OpenGL context for it
-            curr_window_id = glutCreateWindow("OneLoneCoder.com - Pixel Game Engine");
+            glutCreateWindow("OneLoneCoder.com - Pixel Game Engine");
             glEnable(GL_TEXTURE_2D); // Turn on texturing
             glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 #endif
