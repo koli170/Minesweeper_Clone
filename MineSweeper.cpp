@@ -9,6 +9,9 @@
 #include <random>
 #include <ctime>
 #include <cmath>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 #include "ms_grid.hpp"
 #include "ms_input_controller.hpp"
@@ -39,38 +42,38 @@ int screen_height = 2*border_size + banner_size + grid_y*32;
 bool generated = false;
 
 // Sprite sheet coords
-int winmine_31_tile_x = 14;
-int winmine_31_tile_y = 195;
-int winmine_31_tile_pressed_x = 31;
-int winmine_31_tile_pressed_y = 195;
-int winmine_31_flag_x = 48;
-int winmine_31_flag_y = 195;
-int winmine_31_mine_x = 99;
-int winmine_31_mine_y = 195;
-int winmine_31_mine_revealed_x = 116;
-int winmine_31_mine_revealed_y = 195;
-int winmine_31_mine_flag_x = 133;
-int winmine_31_mine_flag_y = 195;
-int winmine_31_number_x = 14;
-int winmine_31_number_y = 212;
-int winmine_31_big_number_x = 14;
-int winmine_31_big_number_y = 146;
-int winmine_31_smiley_x = 14;
-int winmine_31_smiley_y = 170;
-int winmine_31_smiley_pressed_x = 39;
-int winmine_31_smiley_pressed_y = 170;
-int winmine_31_smiley_cool_x = 89;
-int winmine_31_smiley_cool_y = 170;
-int winmine_31_smiley_dead_x = 114;
-int winmine_31_smiley_dead_y = 170;
-int winmine_31_question_x = 65;
-int winmine_31_question_y = 195;
-int winmine_31_question_pressed_x = 82;
-int winmine_31_question_pressed_y = 195;
-int winmine_31_flower_part_x = 34;
-int winmine_31_flower_part_y = 335;
-int winmine_31_flower_pressed_x = 31;
-int winmine_31_flower_pressed_y = 332;
+constexpr int winmine_31_tile_x = 14;
+constexpr int winmine_31_tile_y = 195;
+constexpr int winmine_31_tile_pressed_x = 31;
+constexpr int winmine_31_tile_pressed_y = 195;
+constexpr int winmine_31_flag_x = 48;
+constexpr int winmine_31_flag_y = 195;
+constexpr int winmine_31_mine_x = 99;
+constexpr int winmine_31_mine_y = 195;
+constexpr int winmine_31_mine_revealed_x = 116;
+constexpr int winmine_31_mine_revealed_y = 195;
+constexpr int winmine_31_mine_flag_x = 133;
+constexpr int winmine_31_mine_flag_y = 195;
+constexpr int winmine_31_number_x = 14;
+constexpr int winmine_31_number_y = 212;
+constexpr int winmine_31_big_number_x = 14;
+constexpr int winmine_31_big_number_y = 146;
+constexpr int winmine_31_smiley_x = 14;
+constexpr int winmine_31_smiley_y = 170;
+constexpr int winmine_31_smiley_pressed_x = 39;
+constexpr int winmine_31_smiley_pressed_y = 170;
+constexpr int winmine_31_smiley_cool_x = 89;
+constexpr int winmine_31_smiley_cool_y = 170;
+constexpr int winmine_31_smiley_dead_x = 114;
+constexpr int winmine_31_smiley_dead_y = 170;
+constexpr int winmine_31_question_x = 65;
+constexpr int winmine_31_question_y = 195;
+constexpr int winmine_31_question_pressed_x = 82;
+constexpr int winmine_31_question_pressed_y = 195;
+constexpr int winmine_31_flower_part_x = 34;
+constexpr int winmine_31_flower_part_y = 335;
+constexpr int winmine_31_flower_pressed_x = 31;
+constexpr int winmine_31_flower_pressed_y = 332;
 
 
 
@@ -87,7 +90,9 @@ class MineSweeper : public olc::PixelGameEngine
     float global_time = 0;
     float start_time = 0;
     float round_time = 0;
+    std::fstream scores_file;
     pair <int,int> guess = std::make_pair(-1,-1);
+    vector<pair<int,int>> best_times;
     Grid grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
     olc::Sprite sprite_sheet = olc::Sprite("ms_sprite_sheet.png");
 
@@ -141,9 +146,13 @@ private:
         FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 3*ScreenHeight()/5, olc::GREY);
         FillRect(ScreenWidth()/5, ScreenHeight()/5, 3*ScreenWidth()/5, 42, olc::DARK_BLUE);
         DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 15, "YOU WIN", olc::WHITE, 2);
-        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 64, "TIME: " + to_string(static_cast<int>(round_time)) + "s", olc::VERY_DARK_GREY, 2);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 64, "TIME:  " + to_string(static_cast<int>(round_time)) + "s", olc::VERY_DARK_GREY, 2);
         DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 1.5*64, "MINES: " + to_string(bomb_amount), olc::VERY_DARK_GREY, 2);
         DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 2*64, "HINTS: " + to_string(hints_used), olc::VERY_DARK_GREY, 2);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 3*64, "BEST TIMES", olc::VERY_DARK_GREY, 2);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 3.5*64, "EASY:   " + to_string(best_times[0].first) + "s with " + to_string(best_times[0].second) +  " hints", olc::VERY_DARK_GREY, 2);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 4*64, "MEDIUM: " + to_string(best_times[1].first) + "s with " + to_string(best_times[1].second) +  " hints", olc::VERY_DARK_GREY, 2);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 4.5*64, "HARD:   " + to_string(best_times[2].first) + "s with " + to_string(best_times[2].second) +  " hints", olc::VERY_DARK_GREY, 2);
         DrawPartialSprite(4*ScreenWidth()/5 - 32 - 5, ScreenHeight()/5 + 5, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
         DrawString(4*ScreenWidth()/5 - 32 - 5 + 6, ScreenHeight()/5 + 5 + 6, "X", olc::VERY_DARK_GREY, 3);        
 
@@ -329,6 +338,17 @@ private:
 	{
         
         std::srand(std::time({}));
+        best_times.resize(3);
+        scores_file.open("best_times.txt", std::ios::in | std::ios::out);
+
+        for (int i = 0; i < 3; i++){
+            std::string temp_string;
+            std::getline(scores_file, temp_string, ' ');
+            int time = std::stoi(temp_string);
+            std::getline(scores_file, temp_string, '\n');
+            int hints = std::stoi(temp_string);
+            best_times[i] = std::make_pair(time, hints);
+        }
         //glutReshapeFunc(on_resize);
 
 		// Called once at the start, so create things here
@@ -337,9 +357,8 @@ private:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-
+        
         global_time += fElapsedTime;
-
 		// called once per frame
         char key = '_'; // Default nothing pressed
         bool double_click = false;
@@ -365,15 +384,18 @@ private:
         }
 
         if (GetKey(olc::K1).bPressed) {
-            set_standard_difficulty(1);
+            difficulty = 1;
+            set_standard_difficulty(difficulty);
             reset();
         }
         if (GetKey(olc::K2).bPressed) {
-            set_standard_difficulty(2);
+            difficulty = 2;
+            set_standard_difficulty(difficulty);
             reset();
         }
         if (GetKey(olc::K3).bPressed) {
-            set_standard_difficulty(3);
+            difficulty = 3;
+            set_standard_difficulty(difficulty);
             reset();
         }
 
@@ -449,6 +471,13 @@ private:
 
         
         if (victory && win_screen){
+            if (best_times[difficulty-1].first == 0
+                || hints_used < best_times[difficulty-1].second
+                || (hints_used == best_times[difficulty-1].second && round_time > best_times[difficulty-1].first)){
+
+                best_times[difficulty-1] = std::make_pair(round_time, hints_used);
+            }
+
             draw_win_screen();
             if (GetMouse(0).bPressed
                 && click_button( 4*ScreenWidth()/5 - 32 - 5, ScreenHeight()/5 + 5, 4*ScreenWidth()/5 - 32 - 5 + 32, ScreenHeight()/5 + 5 + 32)){
@@ -467,6 +496,17 @@ private:
         bool OnUserDestroy() override
 	{   
         // Called when window is closed
+        if (!scores_file.is_open()) {
+            scores_file.open("scores.txt", std::ios::out);  // Reopen if closed
+        }
+
+        scores_file.seekp(0);
+        scores_file.clear();
+        
+        for (int i = 0; i < 3; i++){
+            scores_file << to_string(best_times[i].first) << " " << to_string(best_times[i].second) << "\n";
+        }
+        scores_file.close();
 		return true;
 	}
 };
