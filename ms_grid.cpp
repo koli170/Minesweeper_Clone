@@ -147,7 +147,7 @@ pair<int, int> Grid::hint(){
         for (int y = 0; y < grid_y; y++){
             Tile current_tile = *mine_field[x][y];
 
-            if (current_tile.is_bomb){
+            if (current_tile.is_bomb && !current_tile.is_flagged){
                 neighbor_count = 9;
                 for (int neighbor_x = x-1; neighbor_x <= x+1; neighbor_x++){
                     for (int neighbor_y = y-1; neighbor_y <= y+1; neighbor_y++){
