@@ -140,10 +140,29 @@ bool Grid::generateMines(int start_x, int start_y, int border_size, int banner_s
 pair<int, int> Grid::hint(){
     int neighbor_count = 0;
     int un_flagged_bomb_count = 0;
+    int least_neighbors = 9;
+    pair<int,int> cheat_bomb = make_pair(-1,-1);
     pair<int,int> guess = make_pair(-1,-1);
     for (int x = 0; x < grid_x; x++){
         for (int y = 0; y < grid_y; y++){
             Tile current_tile = *mine_field[x][y];
+
+            if (current_tile.is_bomb){
+                neighbor_count = 9;
+                for (int neighbor_x = x-1; neighbor_x <= x+1; neighbor_x++){
+                    for (int neighbor_y = y-1; neighbor_y <= y+1; neighbor_y++){
+                        if (neighbor_x < grid_x && neighbor_x >= 0 && neighbor_y < grid_y && neighbor_y >= 0){
+                            if(mine_field[neighbor_x][neighbor_y]->is_revealed){
+                                neighbor_count--;
+                            }
+                        }
+                    }
+                }
+                if (neighbor_count < least_neighbors){
+                    cheat_bomb = make_pair(x,y);
+                }
+            }
+
 
             if (current_tile.is_revealed && current_tile.bomb_count > 0){
                 neighbor_count = 0;
@@ -177,5 +196,9 @@ pair<int, int> Grid::hint(){
 
         }
     }
-    return make_pair(-1,-1);
+
+    if (cheat_bomb.first != -1){
+        flagTile(cheat_bomb.first, cheat_bomb.second);
+    };
+    return cheat_bomb;
 }
