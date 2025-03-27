@@ -23,6 +23,10 @@ using std::endl;
 using std::pair;
 using std::pow;
 
+#define MENU_BUTTON 1
+#define RESTART_BUTTON 2
+#define HINT_BUTTON 3
+
 int grid_x = 30;
 int grid_y = 16;
 int bomb_amount = 100;
@@ -35,6 +39,8 @@ bool generated = false;
 // Sprite sheet coords
 int winmine_31_tile_x = 14;
 int winmine_31_tile_y = 195;
+int winmine_31_tile_pressed_x = 31;
+int winmine_31_tile_pressed_y = 195;
 int winmine_31_flag_x = 48;
 int winmine_31_flag_y = 195;
 int winmine_31_mine_x = 99;
@@ -55,6 +61,15 @@ int winmine_31_smiley_cool_x = 89;
 int winmine_31_smiley_cool_y = 170;
 int winmine_31_smiley_dead_x = 114;
 int winmine_31_smiley_dead_y = 170;
+int winmine_31_question_x = 65;
+int winmine_31_question_y = 195;
+int winmine_31_question_pressed_x = 82;
+int winmine_31_question_pressed_y = 195;
+int winmine_31_flower_part_x = 34;
+int winmine_31_flower_part_y = 335;
+int winmine_31_flower_pressed_x = 31;
+int winmine_31_flower_pressed_y = 332;
+
 
 
 class MineSweeper : public olc::PixelGameEngine 
@@ -63,7 +78,7 @@ class MineSweeper : public olc::PixelGameEngine
     bool defeat = false;
     bool change = true;
     bool win_screen = true;
-    bool restart_pressed = false;
+    int top_button_pressed = 0;
     int tile_size = 32;
     float global_time = 0;
     float start_time = 0;
@@ -131,8 +146,6 @@ private:
     void draw_restart_button(bool pressed, bool defeat, bool victory){
         int x_min = ScreenWidth()/2 - 24;
         int y_min = 20;
-        int x_max = x_min + 48;
-        int y_max = y_min + 48;
         FillRect(x_min-5, y_min-5, 58 , 58, olc::VERY_DARK_GREY);
         if (pressed){
             DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_smiley_pressed_x, winmine_31_smiley_pressed_y, 24, 24, 2);
@@ -146,7 +159,31 @@ private:
         else {
             DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_smiley_x, winmine_31_smiley_y, 24, 24, 2);
         }
-        
+    }
+
+    void draw_menu_button(bool pressed){
+        int x_min = ScreenWidth()/2 - 96;
+        int y_min = 20;
+        FillRect(x_min-5, y_min-5, 58 , 58, olc::VERY_DARK_GREY);
+        if (pressed){
+            DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_flower_pressed_x, winmine_31_flower_pressed_y, 16, 16, 3);
+        }
+        else{
+            DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 3);
+            DrawPartialSprite(x_min+6, y_min+6, &sprite_sheet, winmine_31_flower_part_x, winmine_31_flower_part_y, 11, 11, 3);
+        }
+    }
+
+    void draw_hint_button(bool pressed){
+        int x_min = ScreenWidth()/2 + 48;
+        int y_min = 20;
+        FillRect(x_min-5, y_min-5, 58 , 58, olc::VERY_DARK_GREY);
+        if (pressed){
+            DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_question_pressed_x, winmine_31_question_pressed_y, 16, 16, 3);
+        }
+        else{
+            DrawPartialSprite(x_min, y_min, &sprite_sheet, winmine_31_question_x, winmine_31_question_y, 16, 16, 3);
+        }
     }
 
     void draw_grid(){
@@ -211,36 +248,75 @@ private:
 
     void draw_flag_count(){
         int flag_counter = grid.bomb_amount - grid.flag_count;
-            int counter_value = 0;
-            bool negative = false;
-            FillRect(border_size, 20, 78, 46, olc::BLACK);
-            if (flag_counter > 999){
-                flag_counter = 999;
+        int counter_value = 0;
+        int max_x = ScreenWidth()/2 - 200;
+        int x_cord = border_size;
+        bool negative = false;
+
+        // Make space for buttons
+        if (x_cord > max_x){
+            x_cord = max_x;
+        }
+
+        FillRect(x_cord, 20, 78, 46, olc::BLACK);
+        if (flag_counter > 999){
+            flag_counter = 999;
+        }
+        else if (flag_counter < -99){
+            flag_counter = -99;
+        }
+        if (flag_counter < 0){
+            negative = true;
+            flag_counter = -flag_counter;
+        }
+        for (int i = 2; i >= 0; i--){
+            counter_value = flag_counter % 10;
+            if (negative && i == 0){
+                counter_value = 11;
             }
-            else if (flag_counter < -99){
-                flag_counter = -99;
+            else if (flag_counter == 0 && i == 2){
+                counter_value = 10;
             }
-            if (flag_counter < 0){
-                negative = true;
-                flag_counter = -flag_counter;
+            else if (counter_value == 0 && flag_counter == 0){
+                counter_value = 12;
             }
-            for (int i = 2; i >= 0; i--){
-                counter_value = flag_counter % 10;
-                if (negative && i == 0){
-                    counter_value = 11;
-                }
-                else if (flag_counter == 0 && i == 2){
-                    counter_value = 10;
-                }
-                else if (counter_value == 0 && flag_counter == 0){
-                    counter_value = 12;
-                }
-                else if (counter_value == 0){
-                    counter_value = 10;
-                }
-                DrawPartialSprite(border_size + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
-                flag_counter = flag_counter / 10;
+            else if (counter_value == 0){
+                counter_value = 10;
             }
+            DrawPartialSprite(x_cord + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
+            flag_counter = flag_counter / 10;
+        }
+    }
+
+    void draw_timer(){
+        int temp_round_time = round_time;
+        int counter_value = 0;
+        int min_x = ScreenWidth()/2 + 200;
+        int x_cord = ScreenWidth() - border_size;
+
+        // Make space for buttons
+        if (x_cord < min_x){
+            x_cord = min_x;
+        }
+
+        FillRect(x_cord - 78, 20, 78, 46, olc::BLACK);
+        if (round_time > 999){
+            temp_round_time = 999;
+        }
+        for (int i = 2; i >= 0; i--){
+            counter_value = temp_round_time % 10;
+            if (temp_round_time == 0 && i == 2){
+                counter_value = 10;
+            }
+            else if (counter_value == 0 && temp_round_time == 0){
+                counter_value = 12;
+            }
+            else if (counter_value == 0){
+                counter_value = 10;
+            }
+            DrawPartialSprite(x_cord - 78 + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
+            temp_round_time = temp_round_time / 10;
+        }
     }
 
 	bool OnUserCreate() override
@@ -302,6 +378,40 @@ private:
             change = true;
         }
 
+        if (GetMouse(0).bPressed && click_button(ScreenWidth()/2-24, 20, ScreenWidth()/2+24, 68)){
+            top_button_pressed = RESTART_BUTTON;
+        }
+        else if (GetMouse(0).bPressed && click_button(ScreenWidth()/2-96, 20, ScreenWidth()/2-48, 68)){
+            top_button_pressed = MENU_BUTTON;
+        }
+        else if (GetMouse(0).bPressed && click_button(ScreenWidth()/2+48, 20, ScreenWidth()/2+96, 68)){
+            top_button_pressed = HINT_BUTTON;
+        }
+
+        if (top_button_pressed != 0 && GetMouse(0).bReleased){
+            if (top_button_pressed == RESTART_BUTTON){
+                reset();
+            }
+            else if (top_button_pressed == HINT_BUTTON){
+                guess = grid.hint();
+                if (guess.first != -1){
+                    round_time += 20;
+                    change = true;
+                }
+            }
+            top_button_pressed = 0;
+        }
+
+        // Draw menu button
+        draw_menu_button(top_button_pressed == MENU_BUTTON);
+
+        // Draw restart button
+        draw_restart_button(top_button_pressed == RESTART_BUTTON, defeat, victory);
+
+        // Draw hint button
+        draw_hint_button(top_button_pressed == HINT_BUTTON);
+        
+
         // IF A CHANGE WAS DETECTED, RE DRAW THE GRID
         if (change){
             change = defeat;
@@ -318,41 +428,11 @@ private:
         change = (change != defeat);    
         }
 
-        // Draw restart button
-        if (GetMouse(0).bPressed && click_button(ScreenWidth()/2-24, 20, ScreenWidth()/2+24, 68)){
-            restart_pressed = true;
-        }
-        if (restart_pressed && GetMouse(0).bReleased){
-            restart_pressed = false;
-            reset();
-        }
-        draw_restart_button(restart_pressed, defeat, victory);
-        
-
         // DRAW TIMER
         if (grid.generated && !victory && !defeat){
             round_time += fElapsedTime;
         }
-        int temp_round_time = round_time;
-        int counter_value = 0;
-        FillRect(ScreenWidth() - border_size - 78, 20, 78, 46, olc::BLACK);
-        if (round_time > 999){
-            temp_round_time = 999;
-        }
-        for (int i = 2; i >= 0; i--){
-            counter_value = temp_round_time % 10;
-            if (temp_round_time == 0 && i == 2){
-                counter_value = 10;
-            }
-            else if (counter_value == 0 && temp_round_time == 0){
-                counter_value = 12;
-            }
-            else if (counter_value == 0){
-                counter_value = 10;
-            }
-            DrawPartialSprite(ScreenWidth() - border_size - 78 + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
-            temp_round_time = temp_round_time / 10;
-        }
+        draw_timer();
 
         
         if (victory && win_screen){
