@@ -149,6 +149,100 @@ private:
         
     }
 
+    void draw_grid(){
+        FillRect(border_size - 5, banner_size-5, grid.grid_x*grid.tile_size + 10, grid.grid_y*grid.tile_size + 10, olc::VERY_DARK_GREY);
+        FillRect(border_size, banner_size, ScreenWidth()-(2*border_size), grid_y*tile_size, olc::GREY);
+
+
+        for (int x = 0; x < grid.grid_x; x++){
+            FillRect(border_size + grid.tile_size*x, banner_size, 2, grid.grid_y*grid.tile_size, olc::DARK_GREY);
+        }
+        for (int y = 0; y < grid.grid_y; y++){
+            FillRect(border_size, banner_size + grid.tile_size*y, grid.grid_x*grid.tile_size, 2, olc::DARK_GREY);
+        }
+
+        // ITERATE TILES
+        victory = true;
+        for (int x = 0; x < grid.grid_x; x++){
+            for (int y = 0; y < grid.grid_y; y++){
+                Tile current_tile = *grid.mine_field[x][y];
+
+                if (!current_tile.is_revealed && !current_tile.is_bomb){
+                    victory = false;
+                }
+                
+                // DRAW CLICKED BOMB
+                if(current_tile.is_bomb && current_tile.is_revealed){
+                    DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_revealed_x, winmine_31_mine_revealed_y, 16, 16, 2);
+                    defeat = true;
+                }
+                // DRAW FLAGGED BOMB ON DEFEAT
+                else if (defeat && current_tile.is_bomb && current_tile.is_flagged){
+                    DrawPartialSprite(border_size + current_tile.x_min,  banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_flag_x, winmine_31_mine_flag_y, 16, 16, 2);
+                }
+                // DRAW UNFLAGGED BOMB ON DEFEAT
+                else if (defeat && current_tile.is_bomb && !current_tile.is_revealed){
+                    DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_x, winmine_31_mine_y, 16, 16, 2);
+                }
+                // DRAW FLAGGED TILE
+                else if(current_tile.is_flagged){
+                    DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_flag_x, winmine_31_flag_y, 16, 16, 2);
+                }
+                // DRAW UNREVEALED TILE
+                else if (!current_tile.is_revealed){
+                    DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
+                }
+                // DRAW EMPTY TILE
+                else if(current_tile.bomb_count == 0){
+                    
+                }
+                // DRAW NUMBER
+                else{
+                    DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_number_x + (current_tile.bomb_count-1)*17, winmine_31_number_y, 16, 16, 2);
+                }
+
+                // DRAW HINT MARKER
+                if (x == guess.first && y == guess.second){
+                    FillRect(border_size + current_tile.x_min, banner_size + current_tile.y_min, 10, 10, olc::YELLOW);
+                }
+            }
+        }
+    }
+
+    void draw_flag_count(){
+        int flag_counter = grid.bomb_amount - grid.flag_count;
+            int counter_value = 0;
+            bool negative = false;
+            FillRect(border_size, 20, 78, 46, olc::BLACK);
+            if (flag_counter > 999){
+                flag_counter = 999;
+            }
+            else if (flag_counter < -99){
+                flag_counter = -99;
+            }
+            if (flag_counter < 0){
+                negative = true;
+                flag_counter = -flag_counter;
+            }
+            for (int i = 2; i >= 0; i--){
+                counter_value = flag_counter % 10;
+                if (negative && i == 0){
+                    counter_value = 11;
+                }
+                else if (flag_counter == 0 && i == 2){
+                    counter_value = 10;
+                }
+                else if (counter_value == 0 && flag_counter == 0){
+                    counter_value = 12;
+                }
+                else if (counter_value == 0){
+                    counter_value = 10;
+                }
+                DrawPartialSprite(border_size + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
+                flag_counter = flag_counter / 10;
+            }
+    }
+
 	bool OnUserCreate() override
 	{
         
@@ -205,7 +299,6 @@ private:
         if (GetKey(olc::H).bPressed && !victory && !defeat){
             guess = grid.hint();
             round_time += 20;
-            cout << "HINT USED" << endl;
             change = true;
         }
 
@@ -215,97 +308,10 @@ private:
             Clear(olc::DARK_GREY);
             
             // DRAW GRID LINES & BORDER
-            FillRect(border_size - 5, banner_size-5, grid.grid_x*grid.tile_size + 10, grid.grid_y*grid.tile_size + 10, olc::VERY_DARK_GREY);
-            FillRect(border_size, banner_size, ScreenWidth()-(2*border_size), grid_y*tile_size, olc::GREY);
-
-
-            for (int x = 0; x < grid.grid_x; x++){
-                FillRect(border_size + grid.tile_size*x, banner_size, 2, grid.grid_y*grid.tile_size, olc::DARK_GREY);
-            }
-            for (int y = 0; y < grid.grid_y; y++){
-                FillRect(border_size, banner_size + grid.tile_size*y, grid.grid_x*grid.tile_size, 2, olc::DARK_GREY);
-            }
-
-            // ITERATE TILES
-            victory = true;
-            for (int x = 0; x < grid.grid_x; x++){
-                for (int y = 0; y < grid.grid_y; y++){
-                    Tile current_tile = *grid.mine_field[x][y];
-
-                    if (!current_tile.is_revealed && !current_tile.is_bomb){
-                        victory = false;
-                    }
-                    
-                    // DRAW CLICKED BOMB
-                    if(current_tile.is_bomb && current_tile.is_revealed){
-                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_revealed_x, winmine_31_mine_revealed_y, 16, 16, 2);
-                        defeat = true;
-                    }
-                    // DRAW FLAGGED BOMB ON DEFEAT
-                    else if (defeat && current_tile.is_bomb && current_tile.is_flagged){
-                        DrawPartialSprite(border_size + current_tile.x_min,  banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_flag_x, winmine_31_mine_flag_y, 16, 16, 2);
-                    }
-                    // DRAW UNFLAGGED BOMB ON DEFEAT
-                    else if (defeat && current_tile.is_bomb && !current_tile.is_revealed){
-                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_mine_x, winmine_31_mine_y, 16, 16, 2);
-                    }
-                    // DRAW FLAGGED TILE
-                    else if(current_tile.is_flagged){
-                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_flag_x, winmine_31_flag_y, 16, 16, 2);
-                    }
-                    // DRAW UNREVEALED TILE
-                    else if (!current_tile.is_revealed){
-                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
-                    }
-                    // DRAW EMPTY TILE
-                    else if(current_tile.bomb_count == 0){
-                        
-                    }
-                    // DRAW NUMBER
-                    else{
-                        DrawPartialSprite(border_size + current_tile.x_min, banner_size + current_tile.y_min, &sprite_sheet, winmine_31_number_x + (current_tile.bomb_count-1)*17, winmine_31_number_y, 16, 16, 2);
-                    }
-
-                    // DRAW HINT MARKER
-                    if (x == guess.first && y == guess.second){
-                        FillRect(border_size + current_tile.x_min, banner_size + current_tile.y_min, 10, 10, olc::YELLOW);
-                    }
-                }
-            }
-        
+            draw_grid();
 
             // DRAW FLAG COUNT
-            int flag_counter = grid.bomb_amount - grid.flag_count;
-            int counter_value = 0;
-            bool negative = false;
-            FillRect(border_size, 20, 78, 46, olc::BLACK);
-            if (flag_counter > 999){
-                flag_counter = 999;
-            }
-            else if (flag_counter < -99){
-                flag_counter = -99;
-            }
-            if (flag_counter < 0){
-                negative = true;
-                flag_counter = -flag_counter;
-            }
-            for (int i = 2; i >= 0; i--){
-                counter_value = flag_counter % 10;
-                if (negative && i == 0){
-                    counter_value = 11;
-                }
-                else if (flag_counter == 0 && i == 2){
-                    counter_value = 10;
-                }
-                else if (counter_value == 0 && flag_counter == 0){
-                    counter_value = 12;
-                }
-                else if (counter_value == 0){
-                    counter_value = 10;
-                }
-                DrawPartialSprite(border_size + 26*i, 20, &sprite_sheet, winmine_31_big_number_x + (counter_value-1)*14, winmine_31_big_number_y, 13, 23, 2);
-                flag_counter = flag_counter / 10;
-            }
+            draw_flag_count();
 
         // If defeat is different from start of this frame, 
         // then draw it again in order to draw all exposed bombs
