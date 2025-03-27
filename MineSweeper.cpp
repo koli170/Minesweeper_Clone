@@ -22,9 +22,12 @@ using std::endl;
 using std::pair;
 using std::pow;
 
-#define MENU_BUTTON 1
-#define RESTART_BUTTON 2
-#define HINT_BUTTON 3
+
+namespace Buttons {
+    int MENU_BUTTON = 1;
+    int RESTART_BUTTON = 2;
+    int HINT_BUTTON = 3;
+};
 
 int grid_x = 30;
 int grid_y = 16;
@@ -79,6 +82,8 @@ class MineSweeper : public olc::PixelGameEngine
     bool win_screen = true;
     int top_button_pressed = 0;
     int tile_size = 32;
+    int hints_used = 0;
+    int difficulty = 3;
     float global_time = 0;
     float start_time = 0;
     float round_time = 0;
@@ -102,6 +107,7 @@ private:
     void reset(){
         grid = Grid(tile_size, grid_x, grid_y, bomb_amount);
         round_time = 0;
+        hints_used = 0;
         victory = false;
         defeat = false;
         change = true;
@@ -137,6 +143,7 @@ private:
         DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 15, "YOU WIN", olc::WHITE, 2);
         DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 64, "TIME: " + to_string(static_cast<int>(round_time)) + "s", olc::VERY_DARK_GREY, 2);
         DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 1.5*64, "MINES: " + to_string(bomb_amount), olc::VERY_DARK_GREY, 2);
+        DrawString(ScreenWidth()/5 + 5, ScreenHeight()/5 + 2*64, "HINTS: " + to_string(hints_used), olc::VERY_DARK_GREY, 2);
         DrawPartialSprite(4*ScreenWidth()/5 - 32 - 5, ScreenHeight()/5 + 5, &sprite_sheet, winmine_31_tile_x, winmine_31_tile_y, 16, 16, 2);
         DrawString(4*ScreenWidth()/5 - 32 - 5 + 6, ScreenHeight()/5 + 5 + 6, "X", olc::VERY_DARK_GREY, 3);        
 
@@ -373,42 +380,49 @@ private:
         guess = std::make_pair(-1,-1);
         if (GetKey(olc::H).bPressed && !victory && !defeat){
             guess = grid.hint();
-            round_time += 20;
+            hints_used++;
             change = true;
         }
 
         if (GetMouse(0).bPressed && click_button(ScreenWidth()/2-24, 20, ScreenWidth()/2+24, 68)){
-            top_button_pressed = RESTART_BUTTON;
+            top_button_pressed = Buttons::RESTART_BUTTON;
         }
         else if (GetMouse(0).bPressed && click_button(ScreenWidth()/2-96, 20, ScreenWidth()/2-48, 68)){
-            top_button_pressed = MENU_BUTTON;
+            top_button_pressed = Buttons::MENU_BUTTON;
         }
         else if (GetMouse(0).bPressed && click_button(ScreenWidth()/2+48, 20, ScreenWidth()/2+96, 68)){
-            top_button_pressed = HINT_BUTTON;
+            top_button_pressed = Buttons::HINT_BUTTON;
         }
 
         if (top_button_pressed != 0 && GetMouse(0).bReleased){
-            if (top_button_pressed == RESTART_BUTTON){
+            if (top_button_pressed == Buttons::RESTART_BUTTON){
                 reset();
             }
-            else if (top_button_pressed == HINT_BUTTON){
-                guess = grid.hint();
-                if (guess.first != -1){
-                    round_time += 20;
-                    change = true;
+            else if (top_button_pressed == Buttons::HINT_BUTTON){
+                if (!victory && !defeat){
+                        guess = grid.hint();
+                    if (guess.first != -1){
+                        change = true;
+                        hints_used++;
+                    }
                 }
             }
+            else if (top_button_pressed == Buttons::MENU_BUTTON){
+                difficulty = ((difficulty+1) % 3) + 1;
+                set_standard_difficulty(difficulty);
+                reset();
+                }
             top_button_pressed = 0;
         }
 
         // Draw menu button
-        draw_menu_button(top_button_pressed == MENU_BUTTON);
+        draw_menu_button(top_button_pressed == Buttons::MENU_BUTTON);
 
         // Draw restart button
-        draw_restart_button(top_button_pressed == RESTART_BUTTON, defeat, victory);
+        draw_restart_button(top_button_pressed == Buttons::RESTART_BUTTON, defeat, victory);
 
         // Draw hint button
-        draw_hint_button(top_button_pressed == HINT_BUTTON);
+        draw_hint_button(top_button_pressed == Buttons::HINT_BUTTON);
         
 
         // IF A CHANGE WAS DETECTED, RE DRAW THE GRID
