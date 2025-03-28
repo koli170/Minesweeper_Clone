@@ -44,8 +44,6 @@ bool generated = false;
 // Sprite sheet coords
 constexpr int winmine_31_tile_x = 14;
 constexpr int winmine_31_tile_y = 195;
-constexpr int winmine_31_tile_pressed_x = 31;
-constexpr int winmine_31_tile_pressed_y = 195;
 constexpr int winmine_31_flag_x = 48;
 constexpr int winmine_31_flag_y = 195;
 constexpr int winmine_31_mine_x = 99;
@@ -473,7 +471,7 @@ private:
         if (victory && win_screen){
             if (best_times[difficulty-1].first == 0
                 || hints_used < best_times[difficulty-1].second
-                || (hints_used == best_times[difficulty-1].second && round_time > best_times[difficulty-1].first)){
+                || (hints_used == best_times[difficulty-1].second && round_time < best_times[difficulty-1].first)){
 
                 best_times[difficulty-1] = std::make_pair(round_time, hints_used);
             }
@@ -502,7 +500,7 @@ private:
 
         scores_file.seekp(0);
         scores_file.clear();
-        
+
         for (int i = 0; i < 3; i++){
             scores_file << to_string(best_times[i].first) << " " << to_string(best_times[i].second) << "\n";
         }
